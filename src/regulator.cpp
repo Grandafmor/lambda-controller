@@ -53,15 +53,15 @@ int16_t calculateHeaterOutput(uint16_t inputValue)
 
     result = proportionalTerm + integralTerm + derivativeTerm;
 
-    Serial.print("Result before validation: ");
-    Serial.print(result);
-    Serial.print('\n');
+    // Serial.print("Result before validation: ");
+    // Serial.print(result);
+    // Serial.print('\n');
 
     validateRegulatorOutput(&result);
 
-    Serial.print("Result after validation: ");
-    Serial.print(result);
-    Serial.print('\n');
+    // Serial.print("Result after validation: ");
+    // Serial.print(result);
+    // Serial.print('\n');
     return result;
 }
 

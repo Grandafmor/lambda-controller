@@ -92,7 +92,7 @@ void cj125Calibration(){
   optimalCjConfig.UA = analogRead(UA_ANALOG_READ_PIN);
   optimalCjConfig.UR = analogRead(UR_ANALOG_READ_PIN);
 
-  cjReadValues.UA = optimalCjConfig.UA;
+  //cjReadValues.UA = optimalCjConfig.UA;
 
   cj125SendRequest(FIRST_INIT_MODE_17V);
 
@@ -119,7 +119,7 @@ void cj125Calibration(){
 void condensationPhase(){
   
 
-  powerSupply = (float)cjReadValues.UB / 4095 * 3.3 * 3; // te wartosci trzeba posprawdzac zgodnie z dzielnikami
+  powerSupply = (float)cjReadValues.UB / 4095 * 3.3 * 5; // te wartosci trzeba posprawdzac zgodnie z dzielnikami
   heaterPWM = ( 2 / powerSupply) * 255; // te wartosci trzeba posprawdzac zgodnie z dzielnikami i zobaczyc jak działa analog write
   setHeaterPWM(heaterPWM);
 
@@ -210,7 +210,7 @@ float translateLambdaValue(uint16_t data){
 
   if(isAdcLambdaValueInRange(data))
   {
-    result = pgm_read_float_near(LAMBDA_CONVERSION_VALUE + ((data - MINIMUM_LAMBDA_ADC_VALUE)/4));
+    result = pgm_read_float_near(LAMBDA_CONVERSION_VALUE + ((data - MINIMUM_LAMBDA_ADC_VALUE)));
   } 
   else if (data > MAXIMUM_LAMBDA_ADC_VALUE) 
   {
@@ -272,10 +272,15 @@ ADC_READ readCjValues()
 {
   //responseStatus = cj125SendRequest(DIAGNOSTIC);
 
-  cjReadValues.UA = analogRead(UA_ANALOG_READ_PIN);
-  cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
-  cjReadValues.UR = analogRead(UR_ANALOG_READ_PIN);
 
+  cjReadValues.UA = analogRead(UA_ANALOG_READ_PIN);
+  delay(100);
+  cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
+  delay(100);
+  cjReadValues.UR = analogRead(UR_ANALOG_READ_PIN);
+  delay(100);
+
+  Serial.printf("ua: %d, ub: %d, ur: %d \n", cjReadValues.UA, cjReadValues.UB, cjReadValues.UR);
   return cjReadValues;
 }
 
@@ -294,8 +299,8 @@ boolean isBatteryAlright()
 
 void displayValues()
 {
-  const float LAMBDA_VALUE = translateLambdaValue(cjReadValues.UA);
-  const float OXYGEN_CONTENT = translateOxygenValue(cjReadValues.UA);
+  const float LAMBDA_VALUE = translateLambdaValue(cjReadValues.UA/4);
+  const float OXYGEN_CONTENT = translateOxygenValue(cjReadValues.UA/4);
 
     // Update analog output.
     // UpdateAnalogOutput();

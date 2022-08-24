@@ -39,12 +39,10 @@ void loop() {
   {
     cjValues = readCjValues();
     PWM = adjustHeaterOutputPWM(cjValues);
-    //setHeaterPWM(PWM);
+    setHeaterPWM(PWM);
     if(programTime - displayValuesIntervalTime > 1000)
     {
-      Serial.print(cjValues.UA);
-      //displayValues();
-      //Serial.print(PWM);
+      displayValues();
     }
   }
   delay(1000);
