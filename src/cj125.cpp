@@ -293,10 +293,10 @@ void displayValues()
       //Display lambda value unless out of range.
       if (isAdcLambdaValueInRange(cjReadValues.UA)) {
           txString += ", Lambda: ";
-          txString += String(LAMBDA_VALUE, 3);
+          txString += String(LAMBDA_VALUE, 2);
       } else {
           txString += ", Lambda oor: ";
-          txString += String(LAMBDA_VALUE, 3);
+          txString += String(LAMBDA_VALUE, 2);
       }
 
       //Display oxygen unless out of range.
