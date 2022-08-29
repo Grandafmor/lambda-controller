@@ -195,7 +195,10 @@ float translateLambdaValue(uint16_t data){
   {
     result = MINIMUM_LAMBDA_VALUE;
   }
-
+  Serial.print("\n Lambda data: ");
+  Serial.print(data);
+  Serial.print("\n Lambda result: ");
+  Serial.print(result);
   return result;
 }
 
@@ -218,9 +221,9 @@ float translateOxygenValue(uint16_t data){
   {
     result = MINIMUM_OXYGEN_VALUE;
   }
-  Serial.print("\n Data: ");
+  Serial.print("\n Oxygen data: ");
   Serial.print(data);
-  Serial.print("\n Result: ");
+  Serial.print("\n Oxygen result: ");
   Serial.print(result);
   return result;
 }
