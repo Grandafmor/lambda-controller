@@ -42,7 +42,7 @@ void loop() {
     setHeaterPWM(PWM);
     if(programTime - displayValuesIntervalTime > 1000)
     {
-      displayValues();
+      //displayValues();
     }
   }
   delay(1000);
