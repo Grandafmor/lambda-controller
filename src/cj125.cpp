@@ -183,7 +183,7 @@ float translateLambdaValue(uint16_t data){
 
   float result;
 
-  if(isAdcLambdaValueInRange(data))
+  if(isAdcLambdaValueInRange(data*4))
   {
     result = pgm_read_float_near(LAMBDA_CONVERSION_VALUE + (data - MINIMUM_LAMBDA_ADC_VALUE_O));
   } 
@@ -209,7 +209,7 @@ return data >= MINIMUM_OXYGEN_ADC_VALUE && data <= MAXIMUM_OXYGEN_ADC_VALUE;
 float translateOxygenValue(uint16_t data){
   float result = 0;
 
-  if(isAdcOxygenValueInRange(data))
+  if(isAdcOxygenValueInRange(data*4))
   {
     result = pgm_read_float_near(OXYGEN_CONVERSION_VALUE + (data - MINIMUM_OXYGEN_ADC_VALUE_O));
   }
