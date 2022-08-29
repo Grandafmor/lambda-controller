@@ -218,6 +218,10 @@ float translateOxygenValue(uint16_t data){
   {
     result = MINIMUM_OXYGEN_VALUE;
   }
+  Serial.print("\n Data: ");
+  Serial.print(data);
+  Serial.print("\n Result: ");
+  Serial.print(result);
   return result;
 }
 
@@ -288,7 +292,8 @@ void displayValues()
           txString += ", Lambda: ";
           txString += String(LAMBDA_VALUE, 3);
       } else {
-          txString += ", Lambda: -";
+          txString += ", Lambda oor: ";
+          txString += String(LAMBDA_VALUE, 3);
       }
 
       //Display oxygen unless out of range.
@@ -297,7 +302,9 @@ void displayValues()
         txString += String(OXYGEN_CONTENT, 2);
         txString += "%";
       } else {
-        txString += ", Oxygen: -";
+        txString += ", Oxygen oor: ";
+        txString += String(OXYGEN_CONTENT, 2);
+        txString += "%";
       }
       
       //Output string
