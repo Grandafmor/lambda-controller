@@ -271,8 +271,8 @@ boolean isBatteryAlright()
 
 void displayValues()
 {
-  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA/4));
-  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA/4));
+  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA/4*0.66));
+  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA/4*0.66));
 
     // Update analog output.
     // UpdateAnalogOutput();
