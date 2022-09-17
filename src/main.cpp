@@ -22,10 +22,10 @@ void setup() {
   cj125SpiInitalize();
 
   cj125Startup();
-  // cj125Calibration();
-  // cj125HeatSensor();
+  cj125Calibration();
+  cj125HeatSensor();
 
-  // readCjValues();
+  readCjValues();
 
   
 }
