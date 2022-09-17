@@ -18,14 +18,14 @@ void setup() {
   
 
   cj125PinInitialize();
-
+  cj125PinSetup();
   cj125SpiInitalize();
 
-  cj125Startup();
-  cj125Calibration();
-  cj125HeatSensor();
+  // cj125Startup();
+  // cj125Calibration();
+  // cj125HeatSensor();
 
-  readCjValues();
+  // readCjValues();
 
   
 }
@@ -34,7 +34,7 @@ void loop() {
   
   programTime = millis();
   if(!isBatteryAlright()) setup();
-
+  
   if(programTime - readValuesIntervalTime > 20)
   {
     cjValues = readCjValues();
