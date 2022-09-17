@@ -63,12 +63,12 @@ void cj125Startup()
       cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
       Serial.print("\n");
       Serial.print("Power supply: ");
-      Serial.print(cjReadValues.UB/4095*2.7/3300*18300);
+      Serial.print(analogRead(UB_ANALOG_READ_PIN)/4095*2.7/3300*18300);
       Serial.print("\n");
 
       if (responseStatus == STATUS_NO_POWER)
       {
-        logError("Low power");
+        //logError("Low power");
         Serial.println(cjReadValues.UB);
       }
       else if (responseStatus == STATUS_NO_SENSOR)
