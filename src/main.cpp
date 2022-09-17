@@ -21,7 +21,7 @@ void setup() {
   cj125PinSetup();
   cj125SpiInitalize();
 
-  // cj125Startup();
+  cj125Startup();
   // cj125Calibration();
   // cj125HeatSensor();
 
