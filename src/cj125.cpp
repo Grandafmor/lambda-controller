@@ -61,6 +61,7 @@ void cj125Startup()
       actionTime = programTime;
       responseStatus = cj125SendRequest(DIAGNOSTIC);
       cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
+      Serial.print(cjReadValues.UB/4095*2.7/3300*18300);
 
       if (responseStatus == STATUS_NO_POWER)
       {
@@ -72,7 +73,6 @@ void cj125Startup()
       else if (responseStatus == STATUS_OK && cjReadValues.UB >= MINIMUM_BATTERY_ADC_VALUE)
       {
         logInfo("Device is ready");
-        Serial.print(cjReadValues.UB/4095*2.7/3300*18300);
         //return;
       }
     }
@@ -110,7 +110,7 @@ void cj125Calibration()
 void condensationPhase()
 {
 
-  powerSupply = (float)cjReadValues.UB / 4095 * 13.5;
+  powerSupply = (float)cjReadValues.UB / 4095 * 2.7;
   heaterPWM = (2 / powerSupply) * 255;
   setHeaterPWM(heaterPWM);
 
