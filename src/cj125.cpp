@@ -67,13 +67,10 @@ void cj125Startup()
       Serial.print("\n");
 
       if (responseStatus == STATUS_NO_POWER)
-      {
         logError("Low power");
-        Serial.println(cjReadValues.UB);
-      }
       else if (responseStatus == STATUS_NO_SENSOR)
         logError("No sensor");
-        
+
       else if (responseStatus == STATUS_OK && cjReadValues.UB >= MINIMUM_BATTERY_ADC_VALUE)
       {
         logInfo("Device is ready");
