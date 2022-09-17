@@ -36,9 +36,9 @@ void cj125PinInitialize()
 
 void cj125PinSetup()
 {
-  analogSetPinAttenuation(UA_ANALOG_READ_PIN, ADC_11db);
-  analogSetPinAttenuation(UB_ANALOG_READ_PIN, ADC_11db);
-  analogSetPinAttenuation(UR_ANALOG_READ_PIN, ADC_11db);
+  // analogSetPinAttenuation(UA_ANALOG_READ_PIN, ADC_11db);
+  // analogSetPinAttenuation(UB_ANALOG_READ_PIN, ADC_11db);
+  // analogSetPinAttenuation(UR_ANALOG_READ_PIN, ADC_11db);
 }
 
 void cj125SpiInitalize()

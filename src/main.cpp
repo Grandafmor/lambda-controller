@@ -18,7 +18,7 @@ void setup() {
   
 
   cj125PinInitialize();
-  cj125PinSetup();
+ // cj125PinSetup();
   cj125SpiInitalize();
 
   cj125Startup();
