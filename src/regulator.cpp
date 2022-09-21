@@ -29,12 +29,14 @@ void validateRegulatorIntegralState(PID_REGULATOR* regulator){
 #define MIN_VALUE 0
 
 void validateRegulatorOutput(int16_t* output){
+    
     if((*output) > MAX_VALUE) (*output) = MAX_VALUE;
     if((*output) < MIN_VALUE) (*output) = MIN_VALUE;
 }
 
-int16_t calculateHeaterOutput(uint16_t inputValue)
+int16_t calculateHeaterOutput(uint16_t inputValue, uint16_t optimalValue)
 {
+    if(inputValue < optimalValue) inputValue = optimalValue;
     int16_t error, position, result;
     float proportionalTerm, integralTerm, derivativeTerm;
 
@@ -53,15 +55,22 @@ int16_t calculateHeaterOutput(uint16_t inputValue)
 
     result = proportionalTerm + integralTerm + derivativeTerm;
 
+    Serial.print("input: ");
+    Serial.print(inputValue);
+    Serial.print("   ");
+
     validateRegulatorOutput(&result);
+    Serial.print("result: ");
+    Serial.print(result);
+    Serial.print("\n");
 
     return result;
 }
 
 uint16_t adjustHeaterOutputPWM(ADC_READ data){
 
-    if (data.UR < 2000 || optimalCjConfig.UR != 0 || data.UB > MINIMUM_BATTERY_ADC_VALUE) {
-        return calculateHeaterOutput(data.UR*4);
+    if (data.UR*0.66 < 2002 || optimalCjConfig.UR != 0 || data.UB > MINIMUM_BATTERY_ADC_VALUE) {
+        return calculateHeaterOutput(data.UR*0.66, optimalCjConfig.UR);
     } else {
         return 0;
     }

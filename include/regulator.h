@@ -23,7 +23,7 @@ typedef struct _regulator_
     float derivativeGain;
 }PID_REGULATOR;
 
-int16_t calculateHeaterOutput(uint16_t inputValue);
+int16_t calculateHeaterOutput(uint16_t inputValue, uint16_t optimalValue);
 
 uint16_t adjustHeaterOutputPWM(ADC_READ data);
 

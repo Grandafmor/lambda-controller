@@ -19,35 +19,41 @@ String btOutputString;
 
 BluetoothSerial BTSerial;
 
-
-void setup() {
-  Serial.begin(115200);
-  BTSerial.begin('AFR controller');
-  
-  cj125PinInitialize();
-  cj125PinSetup();
-  cj125SpiInitalize();
+void startup()
+{
 
   cj125Startup();
   cj125Calibration();
   cj125HeatSensor();
 }
 
+void setup() {
+  Serial.begin(115200);
+  BTSerial.begin("AFR");
+  
+  cj125PinInitialize();
+  cj125PinSetup();
+  cj125SpiInitalize();
+  startup();
+ 
+}
+
 void loop() {
   
   programTime = millis();
-  if(!isBatteryAlright()) setup();
+  if(!isBatteryAlright()) {setHeaterPWM(0); startup();}
   
-  if(programTime - readValuesIntervalTime > 20)
+  if(programTime - readValuesIntervalTime > 10)
   {
     cjValues = readCjValues();
     PWM = adjustHeaterOutputPWM(cjValues);
-    //setHeaterPWM(PWM);
+    setHeaterPWM(PWM);
     if(programTime - displayValuesIntervalTime > 1000)
     {
       displayValues();
       btOutputString = assembleBtOutputString();
       BTSerial.print(btOutputString);
+      delay(500);
     }
   }
 }

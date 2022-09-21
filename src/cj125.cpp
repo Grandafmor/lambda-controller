@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "analog_write.h"
 #include "conversion.h"
+#include "BluetoothSerial.h"
 
 SPIClass *hspi = NULL;
 CJ125_RESPONSE responseStatus = STATUS_STARTUP;
@@ -86,22 +87,22 @@ void cj125Calibration()
   cj125SendRequest(FIRST_INIT_MODE_17V);
 
   Serial.print("UA_Optimal (λ = 1.00): ");
-  Serial.print(optimalCjConfig.UA);
+  Serial.print((float)optimalCjConfig.UA / 4095 * 3.3 / 7800 * 23000 * 0.66);
   Serial.print(" (λ = ");
-  Serial.print(translateLambdaValue(int(optimalCjConfig.UA / 4)), BIN);
+  Serial.print(translateLambdaValue(int(optimalCjConfig.UA / 4 * 0.66)), BIN);
   Serial.print(")\n\r");
   Serial.print("UR_Optimal: ");
-  Serial.print(optimalCjConfig.UR);
+  logInfo(String(optimalCjConfig.UR));
+  Serial.print((float)optimalCjConfig.UR / 4095 * 3.3 / 7800 * 23000);
   Serial.print("\n\r");
 }
 
 void condensationPhase()
 {
-
   powerSupply = (float)cjReadValues.UB / 4095 * 3.3 / 3300 * 18300;
   heaterPWM = (2 / powerSupply) * 255;
   setHeaterPWM(heaterPWM);
-
+  logInfo(String(powerSupply));
   logInfo("Condensation phase please wait");
   delay(5000);
 
@@ -128,7 +129,6 @@ void rampUpPhase()
 
 void optimalHeatingPhase()
 {
-
   logInfo("Optimal heating phase");
   while (analogRead(UR_ANALOG_READ_PIN) > optimalCjConfig.UR)
   {
@@ -153,14 +153,14 @@ boolean isAdcLambdaValueInRange(uint16_t data)
 
 float translateLambdaValue(uint16_t data)
 {
-
+  logInfo(String(data));
   float result;
 
   if (isAdcLambdaValueInRange(data))
   {
-    result = pgm_read_float_near(LAMBDA_CONVERSION_VALUE + (data - MINIMUM_LAMBDA_ADC_VALUE_O));
+    result = pgm_read_float_near(LAMBDA_CONVERSION_VALUE + (data - MINIMUM_LAMBDA_ADC_VALUE));
   }
-  else if (data > MAXIMUM_LAMBDA_ADC_VALUE_O)
+  else if (data > MAXIMUM_LAMBDA_ADC_VALUE)
   {
     result = MAXIMUM_LAMBDA_VALUE;
   }
@@ -183,9 +183,9 @@ float translateOxygenValue(uint16_t data)
 
   if (isAdcOxygenValueInRange(data))
   {
-    result = pgm_read_float_near(OXYGEN_CONVERSION_VALUE + (data - MINIMUM_OXYGEN_ADC_VALUE_O));
+    result = pgm_read_float_near(OXYGEN_CONVERSION_VALUE + (data - MINIMUM_OXYGEN_ADC_VALUE));
   }
-  else if (data > MAXIMUM_OXYGEN_ADC_VALUE_O)
+  else if (data > MAXIMUM_OXYGEN_ADC_VALUE)
   {
     result = MAXIMUM_OXYGEN_VALUE;
   }
@@ -211,6 +211,7 @@ CJ125_RESPONSE cj125SendRequest(CJ125_REQUEST data)
 
 ADC_READ readCjValues()
 {
+  responseStatus = cj125SendRequest(DIAGNOSTIC);
 
   cjReadValues.UA = analogRead(UA_ANALOG_READ_PIN);
   cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
@@ -234,41 +235,57 @@ boolean isBatteryAlright()
 
 String assembleBtOutputString()
 {
-  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA / 4));
-  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA / 4));
+  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA / 4 * 0.66));
+  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA / 4 * 0.66));
+
+  String btString = ":";
+  btString += ",";
 
   if (responseStatus == STATUS_OK)
   {
-
-    String btString = ":";
-    btString += ";";
-
     if (isAdcLambdaValueInRange(int(cjReadValues.UA / 4)))
     {
       btString += String(LAMBDA_VALUE, 2);
-      btString += ";";
+      btString += ",";
     }
     else
     {
-      btString += "-";
-      btString += ";";
+      // btString += "-";
+      btString += "oor";
+      btString += ",";
     }
 
     if (isAdcOxygenValueInRange(int(cjReadValues.UA / 4)))
     {
       btString += String(OXYGEN_CONTENT, 2);
-      btString += ";";
+      btString += ",";
     }
     else
     {
-      btString += "-";
-      btString += ";";
+      btString += "oor";
+      btString += ",";
     }
-
-    btString += "#";
-
-    return btString;
+    btString += "Status OK";
   }
+  if (responseStatus == STATUS_NO_POWER)
+  {
+    btString += "error";
+    btString += ",";
+    btString += "error";
+    btString += ",";
+    btString += "No power";
+  }
+  if (responseStatus == STATUS_NO_SENSOR)
+  {
+    btString += "error";
+    btString += ",";
+    btString += "error";
+    btString += ",";
+    btString += "No sensor";
+  }
+    btString += ",";
+    btString += "#";
+    return btString;
 }
 
 void displayValues()
@@ -279,14 +296,13 @@ void displayValues()
   if (responseStatus == STATUS_OK)
   {
 
-    String txString = "Measuring, CJ125: 0x";
-    txString += String(responseStatus, HEX);
+    String txString = "Measuring";
     txString += ", UA_ADC: ";
-    txString += String(cjReadValues.UA, DEC);
+    txString += String((float)cjReadValues.UA / 4095 * 3.3 / 7800 * 23000);
     txString += ", UR_ADC: ";
-    txString += String(cjReadValues.UR, DEC);
+    txString += String((float)cjReadValues.UR / 4095 * 3.3 / 7800 * 23000);
     txString += ", UB_ADC: ";
-    txString += String(cjReadValues.UB, DEC);
+    txString += String((float)cjReadValues.UB / 4095 * 3.3 / 3300 * 18300);
 
     if (isAdcLambdaValueInRange(int(cjReadValues.UA / 4)))
     {
