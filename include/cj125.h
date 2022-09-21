@@ -14,28 +14,25 @@
 #define UB_ANALOG_READ_PIN    32
 #define UR_ANALOG_READ_PIN    35
 
-#define MAXIMUM_LAMBDA_ADC_VALUE_O    791
 #define MINIMUM_LAMBDA_ADC_VALUE_O    39
+#define MAXIMUM_LAMBDA_ADC_VALUE_O    791
 
-#define MAXIMUM_LAMBDA_ADC_VALUE    3164
 #define MINIMUM_LAMBDA_ADC_VALUE    156
+#define MAXIMUM_LAMBDA_ADC_VALUE    3164
 
-#define MAXIMUM_LAMBDA_VALUE        10.119
 #define MINIMUM_LAMBDA_VALUE        0.750
+#define MAXIMUM_LAMBDA_VALUE        10.119
 
-#define MAXIMUM_OXYGEN_ADC_VALUE_O    854
 #define MINIMUM_OXYGEN_ADC_VALUE_O    307
+#define MAXIMUM_OXYGEN_ADC_VALUE_O    854
 
-#define MAXIMUM_OXYGEN_ADC_VALUE    3416
 #define MINIMUM_OXYGEN_ADC_VALUE    1228
+#define MAXIMUM_OXYGEN_ADC_VALUE    3416
 
 #define MINIMUM_OXYGEN_VALUE 00.00
 #define MAXIMUM_OXYGEN_VALUE 20.95
 
-
-//#define MINIMUM_BATTERY_ADC_VALUE   550
-
-#define MINIMUM_BATTERY_ADC_VALUE   2200
+#define MINIMUM_BATTERY_ADC_VALUE   2461
 
 typedef enum _cj125_responses_: uint16_t {
     STATUS_STARTUP,
@@ -86,6 +83,8 @@ float translateOxygenValue(uint16_t data);
 ADC_READ readCjValues();
 
 boolean isBatteryAlright();
+
+String assembleBtOutputString();
 
 void displayValues();
 

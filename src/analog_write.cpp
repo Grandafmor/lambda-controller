@@ -22,7 +22,6 @@ int analogWriteChannel(uint8_t pin)
 {
   int channel = -1;
 
-  // Check if pin already attached to a channel
   for (uint8_t i = 0; i < 16; i++)
   {
     if (_analog_write_channels[i].pin == pin)
@@ -32,7 +31,6 @@ int analogWriteChannel(uint8_t pin)
     }
   }
 
-  // If not, attach it to a free channel
   if (channel == -1)
   {
     for (uint8_t i = 0; i < 16; i++)
@@ -63,7 +61,6 @@ void analogWriteFrequency(uint8_t pin, double frequency)
 {
   int channel = analogWriteChannel(pin);
 
-  // Make sure the pin was attached to a channel, if not do nothing
   if (channel != -1 && channel < 16)
   {
     _analog_write_channels[channel].frequency = frequency;
@@ -82,7 +79,6 @@ void analogWriteResolution(uint8_t pin, uint8_t resolution)
 {
   int channel = analogWriteChannel(pin);
 
-  // Make sure the pin was attached to a channel, if not do nothing
   if (channel != -1 && channel < 16)
   {
     _analog_write_channels[channel].resolution = resolution;
@@ -93,14 +89,12 @@ void analogWrite(uint8_t pin, uint32_t value, uint32_t valueMax)
 {
   int channel = analogWriteChannel(pin);
 
-  // Make sure the pin was attached to a channel, if not do nothing
   if (channel != -1 && channel < 16)
   {
     uint8_t resolution = _analog_write_channels[channel].resolution;
     uint32_t levels = pow(2, resolution);
     uint32_t duty = ((levels - 1) / valueMax) * min(value, valueMax);
 
-    // write duty to LEDC
     ledcWrite(channel, duty);
   }
 }

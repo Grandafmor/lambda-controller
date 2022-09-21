@@ -53,22 +53,15 @@ int16_t calculateHeaterOutput(uint16_t inputValue)
 
     result = proportionalTerm + integralTerm + derivativeTerm;
 
-    // Serial.print("Result before validation: ");
-    // Serial.print(result);
-    // Serial.print('\n');
-
     validateRegulatorOutput(&result);
 
-    // Serial.print("Result after validation: ");
-    // Serial.print(result);
-    // Serial.print('\n');
     return result;
 }
 
 uint16_t adjustHeaterOutputPWM(ADC_READ data){
 
-    if (data.UR < 500 || optimalCjConfig.UR != 0 || data.UB > MINIMUM_BATTERY_ADC_VALUE) {
-        return calculateHeaterOutput(data.UR);
+    if (data.UR < 2000 || optimalCjConfig.UR != 0 || data.UB > MINIMUM_BATTERY_ADC_VALUE) {
+        return calculateHeaterOutput(data.UR*4);
     } else {
         return 0;
     }

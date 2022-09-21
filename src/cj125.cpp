@@ -27,18 +27,15 @@ void cj125PinInitialize()
   pinMode(UB_ANALOG_READ_PIN, INPUT);
   pinMode(UA_ANALOG_READ_PIN, INPUT);
   pinMode(HEATER_PWM_PIN, OUTPUT);
-
-  analogRead(UA_ANALOG_READ_PIN);
-
   pinMode(CJ125_SS, OUTPUT);
   logInfo("spi pin initialization complete");
 }
 
 void cj125PinSetup()
 {
-  // analogSetPinAttenuation(UA_ANALOG_READ_PIN, ADC_11db);
-  // analogSetPinAttenuation(UB_ANALOG_READ_PIN, ADC_11db);
-  // analogSetPinAttenuation(UR_ANALOG_READ_PIN, ADC_11db);
+  analogSetPinAttenuation(UA_ANALOG_READ_PIN, ADC_11db);
+  analogSetPinAttenuation(UB_ANALOG_READ_PIN, ADC_11db);
+  analogSetPinAttenuation(UR_ANALOG_READ_PIN, ADC_11db);
 }
 
 void cj125SpiInitalize()
@@ -61,10 +58,6 @@ void cj125Startup()
       actionTime = programTime;
       responseStatus = cj125SendRequest(DIAGNOSTIC);
       cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
-      // Serial.print("\n");
-      // Serial.print("Power supply: ");
-      // Serial.println(analogRead(UB_ANALOG_READ_PIN)/4095*2.7/3300*18300);
-      // Serial.print("\n");
 
       if (responseStatus == STATUS_NO_POWER)
         logError("Low power");
@@ -90,13 +83,7 @@ void cj125Calibration()
   optimalCjConfig.UA = (analogRead(UA_ANALOG_READ_PIN));
   optimalCjConfig.UR = (analogRead(UR_ANALOG_READ_PIN));
 
-  cjReadValues.UA = optimalCjConfig.UA;
-
   cj125SendRequest(FIRST_INIT_MODE_17V);
-
-  Serial.print("read ua value: ");
-  Serial.print(analogRead(UA_ANALOG_READ_PIN));
-  Serial.print('\n');
 
   Serial.print("UA_Optimal (λ = 1.00): ");
   Serial.print(optimalCjConfig.UA);
@@ -111,15 +98,11 @@ void cj125Calibration()
 void condensationPhase()
 {
 
-  powerSupply = (float)cjReadValues.UB / 4095 * 2.7;
+  powerSupply = (float)cjReadValues.UB / 4095 * 3.3 / 3300 * 18300;
   heaterPWM = (2 / powerSupply) * 255;
   setHeaterPWM(heaterPWM);
 
   logInfo("Condensation phase please wait");
-  Serial.print('\n');
-  Serial.print("Calculated power supply: ");
-  Serial.print(powerSupply);
-  Serial.print('\n');
   delay(5000);
 
   logInfo("Done");
@@ -134,13 +117,10 @@ void rampUpPhase()
 
     heaterPWM = (UHeater / powerSupply) * 255;
 
-    if (heaterPWM > 255)
-      heaterPWM = 255;
-
     setHeaterPWM(heaterPWM);
 
     UHeater += 0.4;
-    Serial.print(".");
+    logInfo(".");
     delay(1000);
   }
   logInfo("Done");
@@ -152,18 +132,11 @@ void optimalHeatingPhase()
   logInfo("Optimal heating phase");
   while (analogRead(UR_ANALOG_READ_PIN) > optimalCjConfig.UR)
   {
-    Serial.print("Analog read value: ");
-    Serial.print(analogRead(UR_ANALOG_READ_PIN));
-    Serial.print('\n');
-    Serial.print("optimal value: ");
-    Serial.print(optimalCjConfig.UR);
-    Serial.print('\n');
-    Serial.print(".");
+    logInfo(".");
     delay(1000);
   }
-  logInfo("Done");
-
   setHeaterPWM(0);
+  logInfo("Done");
 }
 
 void cj125HeatSensor()
@@ -183,7 +156,7 @@ float translateLambdaValue(uint16_t data)
 
   float result;
 
-  if (isAdcLambdaValueInRange(data * 4))
+  if (isAdcLambdaValueInRange(data))
   {
     result = pgm_read_float_near(LAMBDA_CONVERSION_VALUE + (data - MINIMUM_LAMBDA_ADC_VALUE_O));
   }
@@ -195,10 +168,7 @@ float translateLambdaValue(uint16_t data)
   {
     result = MINIMUM_LAMBDA_VALUE;
   }
-  Serial.print("\n Lambda data: ");
-  Serial.print(data);
-  Serial.print("\n Lambda result: ");
-  Serial.print(result);
+
   return result;
 }
 
@@ -211,7 +181,7 @@ float translateOxygenValue(uint16_t data)
 {
   float result = 0;
 
-  if (isAdcOxygenValueInRange(data * 4))
+  if (isAdcOxygenValueInRange(data))
   {
     result = pgm_read_float_near(OXYGEN_CONVERSION_VALUE + (data - MINIMUM_OXYGEN_ADC_VALUE_O));
   }
@@ -232,9 +202,7 @@ CJ125_RESPONSE cj125SendRequest(CJ125_REQUEST data)
 
   digitalWrite(CJ125_SS, LOW);
 
-  //logInfo(data);
   Response = static_cast<CJ125_RESPONSE>(SPI.transfer16(data));
-  //logInfo(Response);
 
   digitalWrite(CJ125_SS, HIGH);
 
@@ -243,13 +211,11 @@ CJ125_RESPONSE cj125SendRequest(CJ125_REQUEST data)
 
 ADC_READ readCjValues()
 {
-  // responseStatus = cj125SendRequest(DIAGNOSTIC);
 
   cjReadValues.UA = analogRead(UA_ANALOG_READ_PIN);
   cjReadValues.UB = analogRead(UB_ANALOG_READ_PIN);
   cjReadValues.UR = analogRead(UR_ANALOG_READ_PIN);
 
-  // Serial.printf("ua: %d, ub: %d, ur: %d \n", cjReadValues.UA, cjReadValues.UB, cjReadValues.UR);
   return cjReadValues;
 }
 
@@ -266,16 +232,53 @@ boolean isBatteryAlright()
   }
 }
 
+String assembleBtOutputString()
+{
+  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA / 4));
+  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA / 4));
+
+  if (responseStatus == STATUS_OK)
+  {
+
+    String btString = ":";
+    btString += ";";
+
+    if (isAdcLambdaValueInRange(int(cjReadValues.UA / 4)))
+    {
+      btString += String(LAMBDA_VALUE, 2);
+      btString += ";";
+    }
+    else
+    {
+      btString += "-";
+      btString += ";";
+    }
+
+    if (isAdcOxygenValueInRange(int(cjReadValues.UA / 4)))
+    {
+      btString += String(OXYGEN_CONTENT, 2);
+      btString += ";";
+    }
+    else
+    {
+      btString += "-";
+      btString += ";";
+    }
+
+    btString += "#";
+
+    return btString;
+  }
+}
+
 void displayValues()
 {
   const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA / 4));
   const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA / 4));
 
-  // Display information if no errors is reported.
   if (responseStatus == STATUS_OK)
   {
 
-    // Assemble data.
     String txString = "Measuring, CJ125: 0x";
     txString += String(responseStatus, HEX);
     txString += ", UA_ADC: ";
@@ -285,20 +288,17 @@ void displayValues()
     txString += ", UB_ADC: ";
     txString += String(cjReadValues.UB, DEC);
 
-    // Display lambda value unless out of range.
-    if (isAdcLambdaValueInRange(cjReadValues.UA))
+    if (isAdcLambdaValueInRange(int(cjReadValues.UA / 4)))
     {
       txString += ", Lambda: ";
       txString += String(LAMBDA_VALUE, 2);
     }
     else
     {
-      txString += ", Lambda oor: ";
-      txString += String(LAMBDA_VALUE, 2);
+      txString += ", Lambda -";
     }
 
-    // Display oxygen unless out of range.
-    if (isAdcOxygenValueInRange(cjReadValues.UA))
+    if (isAdcOxygenValueInRange(int(cjReadValues.UA / 4)))
     {
       txString += ", Oxygen: ";
       txString += String(OXYGEN_CONTENT, 2);
@@ -306,9 +306,7 @@ void displayValues()
     }
     else
     {
-      txString += ", Oxygen oor: ";
-      txString += String(OXYGEN_CONTENT, 2);
-      txString += "%";
+      txString += ", Oxygen - ";
     }
 
     logInfo(txString);
@@ -317,9 +315,7 @@ void displayValues()
 
 void setHeaterPWM(uint16_t PWM)
 {
-  if (PWM > 255)
-    PWM = 255;
-  // if (PWM < x)
-  //   PWM = x;
+  if (PWM > 255) PWM = 255;
+  else if (PWM < 0) PWM = 0;
   analogWrite(HEATER_PWM_PIN, PWM);
 }
