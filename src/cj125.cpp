@@ -89,7 +89,7 @@ void cj125Calibration()
   Serial.print("UA_Optimal (λ = 1.00): ");
   Serial.print((float)optimalCjConfig.UA / 4095 * 3.3 / 7800 * 23000 * 0.66);
   Serial.print(" (λ = ");
-  Serial.print(translateLambdaValue(int(optimalCjConfig.UA / 4 * 0.66)), BIN);
+  Serial.print(translateLambdaValue(optimalCjConfig.UA), BIN);
   Serial.print(")\n\r");
   Serial.print("UR_Optimal: ");
   logInfo(String(optimalCjConfig.UR));
@@ -235,15 +235,15 @@ boolean isBatteryAlright()
 
 String assembleBtOutputString()
 {
-  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA / 4 * 0.66));
-  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA / 4 * 0.66));
+  const float LAMBDA_VALUE = translateLambdaValue(cjReadValues.UA);
+  const float OXYGEN_CONTENT = translateOxygenValue(cjReadValues.UA);
 
   String btString = ":";
   btString += ",";
 
   if (responseStatus == STATUS_OK)
   {
-    if (isAdcLambdaValueInRange(int(cjReadValues.UA / 4)))
+    if (isAdcLambdaValueInRange(cjReadValues.UA))
     {
       btString += String(LAMBDA_VALUE, 2);
       btString += ",";
@@ -255,7 +255,7 @@ String assembleBtOutputString()
       btString += ",";
     }
 
-    if (isAdcOxygenValueInRange(int(cjReadValues.UA / 4)))
+    if (isAdcOxygenValueInRange(cjReadValues.UA / 4))
     {
       btString += String(OXYGEN_CONTENT, 2);
       btString += ",";
@@ -290,8 +290,8 @@ String assembleBtOutputString()
 
 void displayValues()
 {
-  const float LAMBDA_VALUE = translateLambdaValue(int(cjReadValues.UA / 4));
-  const float OXYGEN_CONTENT = translateOxygenValue(int(cjReadValues.UA / 4));
+  const float LAMBDA_VALUE = translateLambdaValue(cjReadValues.UA);
+  const float OXYGEN_CONTENT = translateOxygenValue(cjReadValues.UA);
 
   if (responseStatus == STATUS_OK)
   {
@@ -304,7 +304,7 @@ void displayValues()
     txString += ", UB_ADC: ";
     txString += String((float)cjReadValues.UB / 4095 * 3.3 / 3300 * 18300);
 
-    if (isAdcLambdaValueInRange(int(cjReadValues.UA / 4)))
+    if (isAdcLambdaValueInRange(cjReadValues.UA))
     {
       txString += ", Lambda: ";
       txString += String(LAMBDA_VALUE, 2);
@@ -314,7 +314,7 @@ void displayValues()
       txString += ", Lambda -";
     }
 
-    if (isAdcOxygenValueInRange(int(cjReadValues.UA / 4)))
+    if (isAdcOxygenValueInRange(cjReadValues.UA))
     {
       txString += ", Oxygen: ";
       txString += String(OXYGEN_CONTENT, 2);
